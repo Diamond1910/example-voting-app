@@ -1,5 +1,6 @@
 # base defines a base stage that uses the official python runtime base image
 FROM python:3.11-slim AS base
+RUN apt-get update && apt-get install -y gcc python3-dev devscripts && rm -rf /var/lib/apt/lists/*
 
 # Add curl for healthcheck
 RUN apt-get update && \
