@@ -1,0 +1,12 @@
+
+.git
+.gitignore
+.vscode
+*.md
+.terraform
+terraform.tfstate*
+node_modules/
+bin/
+obj/
+__pycache__/
+*.pyc
