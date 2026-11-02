@@ -7,22 +7,23 @@
 # for example, if you were on Intel (amd64) and wanted to build for ARM, you would use:
 # docker buildx build --platform "linux/arm64/v8" .
 
-# build compiles the program for the builder's local platform
-FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:7.0 AS build
-ARG TARGETPLATFORM
-ARG TARGETARCH
-ARG BUILDPLATFORM
-RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
-
+# 1. Pinned SDK Image for Building
+FROM ://microsoft.com AS build
 WORKDIR /source
+
 COPY *.csproj .
-RUN dotnet restore -a $TARGETARCH
+RUN dotnet restore
 
 COPY . .
-RUN dotnet publish -c release -o /app -a $TARGETARCH --self-contained false --no-restore
+RUN dotnet publish -c Release -o /app --no-restore
 
-# app image
-FROM mcr.microsoft.com/dotnet/runtime:7.0
+# 2. Pinned minimal Runtime Image for production execution
+FROM ://microsoft.com AS runtime
 WORKDIR /app
 COPY --from=build /app .
+
+# 3. Enforce Non-Root Execution on Alpine Linux
+RUN adduser -D -u 10001 appuser && chown -R appuser:appuser /app
+USER 10001
+
 ENTRYPOINT ["dotnet", "Worker.dll"]
